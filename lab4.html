@@ -1,0 +1,52 @@
+<html>
+
+<head>
+    <title>Cludo Game</title>
+</head>
+
+<body>
+    <p>
+        <b>Suspects: </b>
+        <span id="suspects-placeholder"></span>
+        <br/>
+        <b>Weapons: </b>
+        <span id="weapons-placeholder"></span>
+        <br/>
+        <b>Rooms: </b>
+        <span id="rooms-placeholder"></span>
+        <br/>
+    </p>
+
+    <p>
+        <FORM>
+            Name:
+            <input type="text" value="name here" autofocus="true" />
+            <input type="button" value="Enter" onclick="window.location.href=('sample2.html')" />
+        </FORM>
+    </p>
+    <p>
+        <FORM>
+            <label>Guess Suspect:</label>
+            <select id="suspects-option">        
+                </select>
+            <br/>
+            <label>Guess Weapon:</label>
+            <select id="weapons-option">        
+                </select>
+            <br/>
+            <label>Guess Room:</label>
+            <select id="rooms-option">        
+                </select>
+            <br/>
+            
+            <br/>
+            <input id="guess-button" type="button" value="Guess"/>
+        </FORM>
+        <span id="continue-placeholder"></span>
+        <br/>
+    </p>
+
+    <script src="lab4.js"></script>
+</body>
+
+</html>
