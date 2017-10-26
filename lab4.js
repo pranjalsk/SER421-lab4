@@ -56,14 +56,14 @@ var userCards = shuffledWithoutSecret.slice(0, cardsPerUser);
 var compCards = shuffledWithoutSecret.slice(cardsPerUser);
 
 //Filter options menu 
-function filterMe(array) {
+function filterMe(array, cards) {
     return array.filter(function (ele) {
-        return !userCards.includes(ele);
+        return !cards.includes(ele);
     });
 }
-var filteredSuspects = filterMe(suspects);
-var filteredWeapons = filterMe(weapons);
-var filteredRooms = filterMe(rooms);
+var filteredSuspects = filterMe(suspects, userCards);
+var filteredWeapons = filterMe(weapons, userCards);
+var filteredRooms = filterMe(rooms, userCards);
 
 populateMenu('suspects-option', filteredSuspects);
 populateMenu('weapons-option', filteredWeapons);
@@ -93,21 +93,19 @@ guessButton.addEventListener('click', function (e) {
     let selectedSuspect = getSelectedValue('suspects-option');
     let selectedWeapon = getSelectedValue('weapons-option');
     let selectedRoom = getSelectedValue('rooms-option');
-    let selectedOptionsArr = [selectedSuspect,selectedWeapon,selectedRoom];
+    let selectedOptionsArr = [selectedSuspect, selectedWeapon, selectedRoom];
 
     if (selectedSuspect === murderSecret[0] &&
         selectedWeapon === murderSecret[1] &&
         selectedRoom === murderSecret[2]) {
         console.log("I won");
         document.getElementById('continue-placeholder').innerHTML = `
-        <p>
-        That was the correct guess! `+selectedSuspect+` did it with the `+ selectedWeapon+` in the `+selectedRoom+`!</br>
-        Click to start a new game: 
-        <input id="reset-button" type="button" value="New Game"/> 
-        </p>
-        `;
-    }
-    else{
+        <p> That was the correct guess! ` + selectedSuspect + ` did it with the ` + selectedWeapon + ` in the ` + selectedRoom + `!</br>
+        Click to start a new game: </p>`;
+        let getElement = createNewButton('button', 'New game', 'reset-button');
+        document.getElementById('continue-placeholder').appendChild(getElement);
+    } 
+    else {
         console.log("I did not win");
         let compHasCards = selectedOptionsArr.filter(function (ele) {
             return compCards.includes(ele);
@@ -115,24 +113,93 @@ guessButton.addEventListener('click', function (e) {
         let showCard = compHasCards[Math.floor(Math.random() * compHasCards.length)];
         console.log(showCard);
         document.getElementById('continue-placeholder').innerHTML = `
-        <p>
-        Sorry that was an incorrect guess! The Computer holds the card for `+showCard+`.<br/>
-        Click to continue: 
-        <input id="continue-button" type="button" value="Continue"/> 
-        </p> `;
+        <p>Sorry that was an incorrect guess! The Computer holds the card for <b>` + showCard + `</b>.<br/>
+        Click to continue: </p> `;
+        let getElement = createNewButton('button', 'continue', 'continue-button');
+        document.getElementById('continue-placeholder').appendChild(getElement);
+
+        let guessBtn = document.getElementById('guess-button');
+        guessBtn.disabled = !guessBtn.disabled;
     }
 });
 
-//Continue button event
-var continueButton = document.getElementById("continue-button");
-continueButton.addEventListener('click',function(e){
-    e.preventDefault();
+function createNewButton(type, value, elementId) {
+    var element = document.createElement("input");
+    element.id = elementId;
+    element.type = type;
+    element.value = value;
+    return element;
+}
 
+//Continue button event listener
+document.addEventListener('click', function (e) {
+    if (e.target && e.target.id === 'continue-button') {
+        e.preventDefault();
+        let compfilteredSuspects = filterMe(suspects, compCards);
+        let compfilteredWeapons = filterMe(weapons, compCards);
+        let compfilteredRooms = filterMe(rooms, compCards);
 
+        var compGuessSuspect = [compfilteredSuspects[Math.floor(Math.random() * compfilteredSuspects.length)],
+            compfilteredWeapons[Math.floor(Math.random() * compfilteredWeapons.length)],
+            compfilteredRooms[Math.floor(Math.random() * compfilteredRooms.length)]
+        ];
+        console.log(compGuessSuspect);
+
+        if (compGuessSuspect[0] === murderSecret[0] &&
+            compGuessSuspect[1] === murderSecret[1] &&
+            compGuessSuspect[2] === murderSecret[2]) {
+            document.getElementById('continue-placeholder').innerHTML = `
+                <p> That was the correct guess! ` + compGuessSuspect[0] + ` did it with the ` + compGuessSuspect[1] + ` in the ` + compGuessSuspect[2] + `!</br>
+                Click to start a new game: </p>`;
+        } 
+        else {
+            let userHasCards = compGuessSuspect.filter(function (ele) {
+                return userCards.includes(ele);
+            });
+            let showCard = userHasCards[Math.floor(Math.random() * userHasCards.length)];
+            console.log(showCard);
+            document.getElementById('continue-placeholder').innerHTML =
+                `<p>The Computer guessed "` + compGuessSuspect[0] + ` in the ` + compGuessSuspect[2] + ` with a ` + compGuessSuspect[1] + `"<br/>
+                The Computer made an incorrect guess! You holds the card for <b>`+showCard+`</b>.<br/>
+                Click to continue: </p>`;
+            let getElement = createNewButton('button', 'Continue', 'comp-continue-button');
+            document.getElementById('continue-placeholder').appendChild(getElement);
+        }
+
+    }
+});
+
+//computer continue preseed
+document.addEventListener('click', function (e) {
+    if (e.target && e.target.id === 'comp-continue-button') {
+        let guessBtn = document.getElementById('guess-button');
+        guessBtn.disabled = !guessBtn.disabled;
+        console.log('cont clicked');
+        document.getElementById('continue-placeholder').innerHTML = ``;
+    }
 });
 
 
+//reset button event listener
+document.addEventListener('click', function (e) {
+    if (e.target && e.target.id === 'reset-button') {
+        console.log('reset clicked');
+    }
+});
 
+
+//Enter Button clicked
+document.addEventListener('click', function (e) {
+    if (e.target && e.target.id === 'enter-button') {
+        console.log('enter clicked');
+        let username = document.getElementById('user-name').value;
+        document.getElementById('user-form-div').innerHTML = ``;
+        document.getElementById('userinfo-placeholder').innerHTML = `
+            <p>Hello <b>`+ username+`,</b> you hold the cards: <i>`+ userCards.toString() +`</i></p>`;
+        let guessBtn = document.getElementById('guess-button');
+        guessBtn.disabled = !guessBtn.disabled;
+    }
+});
 
 
 

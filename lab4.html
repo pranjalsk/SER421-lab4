@@ -18,29 +18,32 @@
     </p>
 
     <p>
-        <FORM>
-            Name:
-            <input type="text" value="name here" autofocus="true" />
-            <input type="button" value="Enter" onclick="window.location.href=('sample2.html')" />
-        </FORM>
+        <div id="user-form-div">
+            <FORM>
+                Name:
+                <input id="user-name" type="text" value="name here" autofocus="true" />
+                <input id="enter-button" type="button" value="Enter" />
+            </FORM>
+        </div>
+        <span id="userinfo-placeholder"></span>
     </p>
     <p>
         <FORM>
             <label>Guess Suspect:</label>
-            <select id="suspects-option">        
-                </select>
+            <select id="suspects-option">
+            </select>
             <br/>
             <label>Guess Weapon:</label>
-            <select id="weapons-option">        
-                </select>
+            <select id="weapons-option">
+            </select>
             <br/>
             <label>Guess Room:</label>
-            <select id="rooms-option">        
-                </select>
+            <select id="rooms-option">
+            </select>
             <br/>
-            
+
             <br/>
-            <input id="guess-button" type="button" value="Guess"/>
+            <input id="guess-button" type="button" disabled="true" value="Guess" />
         </FORM>
         <span id="continue-placeholder"></span>
         <br/>
