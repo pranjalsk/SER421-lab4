@@ -96,14 +96,25 @@ document.getElementById('guess-button').addEventListener('click', function (e) {
         console.log("I won");
 
         //Place record into ledger
-        insertRecord(username,username);
+        insertRecord(username, username);
+        let localStr =  localStorage.data;
+        localStr = localStr.substring(0, localStr.length-1);
+        let recordsArray = localStr.split(";");
+        recordLedger = [];
+        // console.log("Records array is:");
+        // console.log(recordsArray);
+        // console.log(JSON.parse(recordsArray[0]));
+        recordsArray.forEach(function(record){
+            recordLedger.push(JSON.parse(record)); 
+        });
 
         document.getElementById('continue-placeholder').innerHTML = `
         <p> That was the correct guess! ` + selectedSuspect + ` did it with the ` + selectedWeapon + ` in the ` + selectedRoom + `!</br>
         Click to start a new game: </p>`;
         let getElement = createNewButton('button', 'New game', 'reset-button');
         document.getElementById('continue-placeholder').appendChild(getElement);
-    } else {
+    } 
+    else {
         console.log("I did not win");
         let compHasCards = selectedOptionsArr.filter(function (ele) {
             return compCards.includes(ele);
@@ -130,7 +141,7 @@ document.addEventListener('click', function (e) {
         let compfilteredWeapons = filterMe(weapons, compCards);
         let compfilteredRooms = filterMe(rooms, compCards);
 
-        var compGuess = [compfilteredSuspects[Math.floor(Math.random() * compfilteredSuspects.length)],
+        let compGuess = [compfilteredSuspects[Math.floor(Math.random() * compfilteredSuspects.length)],
             compfilteredWeapons[Math.floor(Math.random() * compfilteredWeapons.length)],
             compfilteredRooms[Math.floor(Math.random() * compfilteredRooms.length)]
         ];
@@ -144,8 +155,20 @@ document.addEventListener('click', function (e) {
 
             console.log("Computer won");
             //Place record into ledger
-            insertRecord('Computer','Computer');    
-            
+            insertRecord('Computer', 'Computer');
+            // console.log(recordLedger);
+            // console.log(localStorage.data);
+            // let localStr =  localStorage.data;
+            localStr = localStr.substring(0, localStr.length-1);
+            let recordsArray = localStr.split(";");
+            recordLedger = [];
+            // console.log("Records array is:");
+            // console.log(recordsArray);
+            // console.log(JSON.parse(recordsArray[0]));
+            recordsArray.forEach(function(record){
+                recordLedger.push(JSON.parse(record)); 
+            });
+
             document.getElementById('continue-placeholder').innerHTML = `
                 <p> That was the correct guess! ` + compGuess[0] + ` did it with the ` + compGuess[1] + ` in the ` + compGuess[2] + `!</br>
                 Click to start a new game: </p>`;
@@ -185,11 +208,11 @@ document.addEventListener('click', function (e) {
         document.getElementById("history-placeholder").innerHTML = '';
         document.getElementById('history-button').value = "Show History";
         username = '';
-        
+
         resetMenuOptions();
         prepopulateMenuOption();
         historyCards = [];
-        
+
         //New player form
         document.getElementById("user-form-div").innerHTML = `
         <FORM>
@@ -217,7 +240,7 @@ document.addEventListener('click', function (e) {
         distributeCards();
 
         username = document.getElementById('user-name').value;
-        document.getElementById('user-form-div').innerHTML = ``;
+        document.getElementById('user-form-div').innerHTML = '';
         document.getElementById('userinfo-placeholder').innerHTML = `
             <p>Hello <b>` + username + `,</b> you hold the cards: <i>` + userCards.toString() + `</i></p>`;
         let guessBtn = document.getElementById('guess-button');
@@ -229,7 +252,7 @@ document.addEventListener('click', function (e) {
 //history button event listener
 document.addEventListener('click', function (e) {
     if (e.target && e.target.id === 'history-button') {
-        console.log(historyCards);
+        
         document.getElementById('history-placeholder').innerHTML = '';
         historyCards.forEach(function (historyCard) {
             document.getElementById('history-placeholder').innerHTML += "<div>[" + historyCard + "]</div>";
@@ -250,11 +273,9 @@ document.addEventListener('click', function (e) {
 //Records button event listner
 document.addEventListener('click', function (e) {
     if (e.target && e.target.id === 'record-button') {
-        console.log(recordLedger);
+                      
         document.getElementById('record-placeholder').innerHTML = '';
-        
         recordLedger.forEach(function (record) {
-            //let recordStr = '<Player1:'+record.player1+'--Player2:'+record.player2+'--Date:'+record.date+'--Won By:'+record.wonBy+'>';
             let recordStr = JSON.stringify(record);
             document.getElementById('record-placeholder').innerHTML += "<div>[" + recordStr + "]</div>";
         });
@@ -297,25 +318,24 @@ document.addEventListener('click', function (e) {
 
 
 
+//-------------------------------------------------------------------------------
+//Prepopulate records from localstorage 
+if(localStorage.data){
+    let localStr = localStorage.data;
+    localStr = localStr.substring(0, localStr.length-1);
+    let recordsArray = localStr.split(";");
+    
+    recordLedger = [];
+    recordsArray.forEach(function(record){
+        recordLedger.push(JSON.parse(record)); 
+    });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    document.getElementById('record-placeholder').innerHTML = '';
+    recordLedger.forEach(function (record) {
+        let recordStr = JSON.stringify(record);
+        document.getElementById('record-placeholder').innerHTML += "<div>[" + recordStr + "]</div>";
+    });
+}
 
 //------------------------------------- Helper Functions -------------------------------------------
 
@@ -368,9 +388,9 @@ function resetMenuOptions() {
     document.getElementById("rooms-option").innerHTML = '';
 }
 
-//Shuffle algorithm -  Fisher-Yates (aka Knuth) Shuffle
+//Shuffle algorithm -  Fisher-Yates Shuffle
 function shuffle(array) {
-    var currentIndex = array.length,
+    let currentIndex = array.length,
         temporaryValue, randomIndex;
     // While there remain elements to shuffle...
     while (0 !== currentIndex) {
@@ -385,11 +405,23 @@ function shuffle(array) {
     return array;
 }
 
-function insertRecord(user, wonBy){
-    let record = {  player1:'Computer',
-                    player2: user,
-                    date: new Date().toLocaleString(),
-                    wonBy: wonBy 
+//Insert records into RecordLedger
+function insertRecord(user, wonBy) {
+    let record = {
+        player1: 'Computer',
+        player2: user,
+        date: new Date().toLocaleString(),
+        wonBy: wonBy
     }
-    recordLedger.push(record);
+    //recordLedger.push(record);
+   
+    if(localStorage.data !== undefined){
+        console.log("inside if");
+        localStorage.data += JSON.stringify(record) +";";
+    }
+    else{
+        localStorage.data = JSON.stringify(record) +";";
+    }
 }
+
+// localStorage.clear();
