@@ -14,6 +14,10 @@ var rooms = ['Kitchen', 'Ballroom', 'Conservatory',
 var historyCards = [];
 var murderSecret = [];
 prepopulateMenuOption();
+var username = '';
+
+//Record Ledger
+var recordLedger = [];
 
 //Display input to User
 suspects.forEach(function (suspect) {
@@ -90,6 +94,10 @@ document.getElementById('guess-button').addEventListener('click', function (e) {
         selectedWeapon === murderSecret[1] &&
         selectedRoom === murderSecret[2]) {
         console.log("I won");
+
+        //Place record into ledger
+        insertRecord(username,username);
+
         document.getElementById('continue-placeholder').innerHTML = `
         <p> That was the correct guess! ` + selectedSuspect + ` did it with the ` + selectedWeapon + ` in the ` + selectedRoom + `!</br>
         Click to start a new game: </p>`;
@@ -133,6 +141,11 @@ document.addEventListener('click', function (e) {
         if (compGuess[0] === murderSecret[0] &&
             compGuess[1] === murderSecret[1] &&
             compGuess[2] === murderSecret[2]) {
+
+            console.log("Computer won");
+            //Place record into ledger
+            insertRecord('Computer','Computer');    
+            
             document.getElementById('continue-placeholder').innerHTML = `
                 <p> That was the correct guess! ` + compGuess[0] + ` did it with the ` + compGuess[1] + ` in the ` + compGuess[2] + `!</br>
                 Click to start a new game: </p>`;
@@ -171,6 +184,7 @@ document.addEventListener('click', function (e) {
         document.getElementById("continue-placeholder").innerHTML = '';
         document.getElementById("history-placeholder").innerHTML = '';
         document.getElementById('history-button').value = "Show History";
+        username = '';
         
         resetMenuOptions();
         prepopulateMenuOption();
@@ -202,7 +216,7 @@ document.addEventListener('click', function (e) {
         murderSecret = secretMurder();
         distributeCards();
 
-        let username = document.getElementById('user-name').value;
+        username = document.getElementById('user-name').value;
         document.getElementById('user-form-div').innerHTML = ``;
         document.getElementById('userinfo-placeholder').innerHTML = `
             <p>Hello <b>` + username + `,</b> you hold the cards: <i>` + userCards.toString() + `</i></p>`;
@@ -229,6 +243,30 @@ document.addEventListener('click', function (e) {
         } else {
             x.style.display = "none";
             document.getElementById('history-button').value = "Show History";
+        }
+    }
+});
+
+//Records button event listner
+document.addEventListener('click', function (e) {
+    if (e.target && e.target.id === 'record-button') {
+        console.log(recordLedger);
+        document.getElementById('record-placeholder').innerHTML = '';
+        
+        recordLedger.forEach(function (record) {
+            //let recordStr = '<Player1:'+record.player1+'--Player2:'+record.player2+'--Date:'+record.date+'--Won By:'+record.wonBy+'>';
+            let recordStr = JSON.stringify(record);
+            document.getElementById('record-placeholder').innerHTML += "<div>[" + recordStr + "]</div>";
+        });
+
+        //toggle display logic
+        let x = document.getElementById("record-placeholder");
+        if (x.style.display === "none") {
+            x.style.display = "block";
+            document.getElementById('record-button').value = "Hide Record";
+        } else {
+            x.style.display = "none";
+            document.getElementById('record-button').value = "Show Record";
         }
     }
 });
@@ -345,4 +383,13 @@ function shuffle(array) {
         array[randomIndex] = temporaryValue;
     }
     return array;
+}
+
+function insertRecord(user, wonBy){
+    let record = {  player1:'Computer',
+                    player2: user,
+                    date: new Date().toLocaleString(),
+                    wonBy: wonBy 
+    }
+    recordLedger.push(record);
 }
