@@ -11,15 +11,21 @@ var rooms = ['Kitchen', 'Ballroom', 'Conservatory',
     'LivingRoom', 'DiningRoom', 'Library'
 ]
 
-var historyCards = [];
-var murderSecret = [];
+var historyCards = []; //maintains history for that particular game
+var murderSecret = []; //store triplet of secret
+var userCards = []; //cards given to user
+var compCards = []; //cards given to computer
+var username = ''; // username of the player currently playing the game
+var totalDeckCards = suspects.length + weapons.length + rooms.length; //(2n+3)
+var cardsPerUser = Math.floor((totalDeckCards - 3) / 2);
+
+var recordLedger = []; //keeps record of previous wins
+
+//Initial menu items
 prepopulateMenuOption();
-var username = '';
 
-//Record Ledger
-var recordLedger = [];
 
-//Display input to User
+//Game information and available cards info.
 suspects.forEach(function (suspect) {
     document.getElementById('suspects-placeholder').innerHTML += suspect + ", ";
 });
@@ -30,22 +36,18 @@ rooms.forEach(function (room) {
     document.getElementById('rooms-placeholder').innerHTML += room + ", ";
 });
 
+//Random secret generator
 function secretMurder() {
     let secret = [suspects[Math.floor(Math.random() * suspects.length)],
         weapons[Math.floor(Math.random() * weapons.length)],
         rooms[Math.floor(Math.random() * rooms.length)]
     ];
     //secret is...
-    console.log(secret[0] + " used " + secret[1] + " for murder in the " + secret[2]);
+    console.log(secret[0] + " did it with " + secret[1] + " in the " + secret[2]);
     return secret;
 }
 
-// Distribute cards to user and computer
-var totalDeckCards = suspects.length + weapons.length + rooms.length; //(2n+3)
-var cardsPerUser = Math.floor((totalDeckCards - 3) / 2);
-var userCards = [];
-var compCards = [];
-
+//Distribute cards to user and computer and populate menu optrions accordingly
 function distributeCards() {
     let suspectsWithoutSecret = suspects.filter(function (x) {
         return x !== murderSecret[0];
@@ -57,6 +59,7 @@ function distributeCards() {
         return x !== murderSecret[2];
     });
 
+    //remainning cards in the deck when secret triplet is taken out
     let combinedWithoutSecret = suspectsWithoutSecret.concat(weaponsWithoutSecret, roomsWithoutSecret);
 
     //shuffle the array using Fisher-Yates Shuffle Algorithm
@@ -68,9 +71,16 @@ function distributeCards() {
     userCards = shuffledWithoutSecret.slice(0, cardsPerUser);
     compCards = shuffledWithoutSecret.slice(cardsPerUser);
 
+    console.log(userCards);
+    console.log(compCards);
+
     let filteredSuspects = filterMe(suspects, userCards);
     let filteredWeapons = filterMe(weapons, userCards);
     let filteredRooms = filterMe(rooms, userCards);
+
+    console.log(filteredSuspects);
+    console.log(filteredWeapons);
+    console.log(filteredRooms);
 
     populateMenu('suspects-option', filteredSuspects);
     populateMenu('weapons-option', filteredWeapons);
@@ -78,6 +88,24 @@ function distributeCards() {
 }
 
 
+//Enter Button event listener
+document.addEventListener('click', function (e) {
+    if (e.target && e.target.id === 'enter-button') {
+        console.log('enter clicked');
+
+        //create new secret murder combination = suspect + weapon + room & distribute cards
+        resetMenuOptions();
+        murderSecret = secretMurder();
+        distributeCards();
+
+        username = document.getElementById('user-name').value;
+        document.getElementById('user-form-div').innerHTML = '';
+        document.getElementById('userinfo-placeholder').innerHTML = `
+            <p>Hello <b>` + username + `,</b> you hold the cards: <i>` + userCards.toString() + `</i></p>`;
+        let guessBtn = document.getElementById('guess-button');
+        guessBtn.disabled = !guessBtn.disabled;
+    }
+});
 
 //Guess button event
 document.getElementById('guess-button').addEventListener('click', function (e) {
@@ -93,19 +121,21 @@ document.getElementById('guess-button').addEventListener('click', function (e) {
     if (selectedSuspect === murderSecret[0] &&
         selectedWeapon === murderSecret[1] &&
         selectedRoom === murderSecret[2]) {
-        console.log("I won");
+
+        console.log("Player has won");
 
         //Place record into ledger
-        insertRecord(username, username);
-        let localStr =  localStorage.data;
-        localStr = localStr.substring(0, localStr.length-1);
+        insertRecord(username, username); //insert into local storage
+
+        //JSON parsing operations
+        let localStr = localStorage.data;
+        localStr = localStr.substring(0, localStr.length - 1);
         let recordsArray = localStr.split(";");
+
+        //grab JSON from localstorage and put into recordLeger for current browser session
         recordLedger = [];
-        // console.log("Records array is:");
-        // console.log(recordsArray);
-        // console.log(JSON.parse(recordsArray[0]));
-        recordsArray.forEach(function(record){
-            recordLedger.push(JSON.parse(record)); 
+        recordsArray.forEach(function (record) {
+            recordLedger.push(JSON.parse(record));
         });
 
         document.getElementById('continue-placeholder').innerHTML = `
@@ -113,16 +143,21 @@ document.getElementById('guess-button').addEventListener('click', function (e) {
         Click to start a new game: </p>`;
         let getElement = createNewButton('button', 'New game', 'reset-button');
         document.getElementById('continue-placeholder').appendChild(getElement);
-    } 
-    else {
+
+        let guessBtn = document.getElementById('guess-button');
+        guessBtn.disabled = true;
+    } else {
         console.log("I did not win");
+
+        //Select randomly from computer cards and show it to user
         let compHasCards = selectedOptionsArr.filter(function (ele) {
             return compCards.includes(ele);
         });
         let showCard = compHasCards[Math.floor(Math.random() * compHasCards.length)];
         console.log(showCard);
+
         document.getElementById('continue-placeholder').innerHTML = `
-        <p>Sorry that was an incorrect guess! The Computer holds the card for <b>` + showCard + `</b>.<br/>
+        <p>Sorry that was an incorrect guess!<br/> The Computer holds the card for <b>` + showCard + `</b>.<br/>
         Click to continue: </p> `;
         let getElement = createNewButton('button', 'continue', 'continue-button');
         document.getElementById('continue-placeholder').appendChild(getElement);
@@ -132,11 +167,12 @@ document.getElementById('guess-button').addEventListener('click', function (e) {
     }
 });
 
-
 //Continue button event listener
 document.addEventListener('click', function (e) {
     if (e.target && e.target.id === 'continue-button') {
         e.preventDefault();
+
+        //filter me return all cards that Comp does not have and may guess from remaining
         let compfilteredSuspects = filterMe(suspects, compCards);
         let compfilteredWeapons = filterMe(weapons, compCards);
         let compfilteredRooms = filterMe(rooms, compCards);
@@ -156,22 +192,24 @@ document.addEventListener('click', function (e) {
             console.log("Computer won");
             //Place record into ledger
             insertRecord('Computer', 'Computer');
-            // console.log(recordLedger);
-            // console.log(localStorage.data);
-            // let localStr =  localStorage.data;
-            localStr = localStr.substring(0, localStr.length-1);
+
+            let localStr = localStorage.data;
+            localStr = localStr.substring(0, localStr.length - 1);
             let recordsArray = localStr.split(";");
             recordLedger = [];
-            // console.log("Records array is:");
-            // console.log(recordsArray);
-            // console.log(JSON.parse(recordsArray[0]));
-            recordsArray.forEach(function(record){
-                recordLedger.push(JSON.parse(record)); 
+            recordsArray.forEach(function (record) {
+                recordLedger.push(JSON.parse(record));
             });
 
             document.getElementById('continue-placeholder').innerHTML = `
                 <p> That was the correct guess! ` + compGuess[0] + ` did it with the ` + compGuess[1] + ` in the ` + compGuess[2] + `!</br>
                 Click to start a new game: </p>`;
+            let getElement = createNewButton('button', 'New game', 'reset-button');
+            document.getElementById('continue-placeholder').appendChild(getElement);
+
+            let guessBtn = document.getElementById('guess-button');
+            guessBtn.disabled = true;
+            
         } else {
             let userHasCards = compGuess.filter(function (ele) {
                 return userCards.includes(ele);
@@ -193,11 +231,11 @@ document.addEventListener('click', function (e) {
     if (e.target && e.target.id === 'comp-continue-button') {
         let guessBtn = document.getElementById('guess-button');
         guessBtn.disabled = !guessBtn.disabled;
+
         console.log('cont clicked');
         document.getElementById('continue-placeholder').innerHTML = ``;
     }
 });
-
 
 //reset button event listener
 document.addEventListener('click', function (e) {
@@ -228,31 +266,10 @@ document.addEventListener('click', function (e) {
     }
 });
 
-
-//Enter Button event listener
-document.addEventListener('click', function (e) {
-    if (e.target && e.target.id === 'enter-button') {
-        console.log('enter clicked');
-
-        //create new secret murder combination = suspect + weapon + room & distribute cards
-        resetMenuOptions();
-        murderSecret = secretMurder();
-        distributeCards();
-
-        username = document.getElementById('user-name').value;
-        document.getElementById('user-form-div').innerHTML = '';
-        document.getElementById('userinfo-placeholder').innerHTML = `
-            <p>Hello <b>` + username + `,</b> you hold the cards: <i>` + userCards.toString() + `</i></p>`;
-        let guessBtn = document.getElementById('guess-button');
-        guessBtn.disabled = !guessBtn.disabled;
-    }
-});
-
-
 //history button event listener
 document.addEventListener('click', function (e) {
     if (e.target && e.target.id === 'history-button') {
-        
+
         document.getElementById('history-placeholder').innerHTML = '';
         historyCards.forEach(function (historyCard) {
             document.getElementById('history-placeholder').innerHTML += "<div>[" + historyCard + "]</div>";
@@ -273,7 +290,7 @@ document.addEventListener('click', function (e) {
 //Records button event listner
 document.addEventListener('click', function (e) {
     if (e.target && e.target.id === 'record-button') {
-                      
+
         document.getElementById('record-placeholder').innerHTML = '';
         recordLedger.forEach(function (record) {
             let recordStr = JSON.stringify(record);
@@ -310,24 +327,15 @@ document.addEventListener('click', function (e) {
 
 
 
-
-
-
-
-
-
-
-
-//-------------------------------------------------------------------------------
 //Prepopulate records from localstorage 
-if(localStorage.data){
+if (localStorage.data) {
     let localStr = localStorage.data;
-    localStr = localStr.substring(0, localStr.length-1);
+    localStr = localStr.substring(0, localStr.length - 1);
     let recordsArray = localStr.split(";");
-    
+
     recordLedger = [];
-    recordsArray.forEach(function(record){
-        recordLedger.push(JSON.parse(record)); 
+    recordsArray.forEach(function (record) {
+        recordLedger.push(JSON.parse(record));
     });
 
     document.getElementById('record-placeholder').innerHTML = '';
@@ -414,14 +422,15 @@ function insertRecord(user, wonBy) {
         wonBy: wonBy
     }
     //recordLedger.push(record);
-   
-    if(localStorage.data !== undefined){
+
+    if (localStorage.data !== undefined) {
         console.log("inside if");
-        localStorage.data += JSON.stringify(record) +";";
-    }
-    else{
-        localStorage.data = JSON.stringify(record) +";";
+        localStorage.data += JSON.stringify(record) + ";";
+    } else {
+        localStorage.data = JSON.stringify(record) + ";";
     }
 }
 
+
+//Clear local storage for fresh start---------------------------------------------
 // localStorage.clear();
