@@ -47,7 +47,7 @@ function secretMurder() {
         rooms[Math.floor(Math.random() * rooms.length)]
     ];
     //secret is...
-    console.log(secret[0] + " did it with " + secret[1] + " in the " + secret[2]);
+    console.log("SECRET:" + secret[0] + " did it with " + secret[1] + " in the " + secret[2]);
     return secret;
 }
 
