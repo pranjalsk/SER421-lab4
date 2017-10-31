@@ -1,3 +1,7 @@
+//Title: SER 421 Lab 4
+//Author: Pranjal Karankar
+//ASURITE: pkaranka [1211290961]
+
 // Input parameters
 // 6 suspects
 var suspects = ['Mrs. Peacock', 'Mrs. Green', 'Miss Scarlet', 'Colonel Mustard', 'Professor Plum', 'Madame Rose'];
