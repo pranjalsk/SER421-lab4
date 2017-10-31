@@ -191,7 +191,7 @@ document.addEventListener('click', function (e) {
 
             console.log("Computer won");
             //Place record into ledger
-            insertRecord('Computer', 'Computer');
+            insertRecord(username, 'Computer');
 
             let localStr = localStorage.data;
             localStr = localStr.substring(0, localStr.length - 1);
