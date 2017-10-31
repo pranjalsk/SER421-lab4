@@ -1,6 +1,6 @@
-//Title: SER 421 Lab 4
+//Title: Simple Clue Board game with single player and computer
 //Author: Pranjal Karankar
-//ASURITE: pkaranka [1211290961]
+
 
 // Input parameters
 // 6 suspects
@@ -428,7 +428,6 @@ function insertRecord(user, wonBy) {
     //recordLedger.push(record);
 
     if (localStorage.data !== undefined) {
-        console.log("inside if");
         localStorage.data += JSON.stringify(record) + ";";
     } else {
         localStorage.data = JSON.stringify(record) + ";";

@@ -1,7 +1,8 @@
 ### Cludo Game
+Simple Clue Board game with single player and computer
 
-#### Author: Pranjal Karankar (pkaranka | 1211290961)
+#### Author: Pranjal Karankar 
 
-Notes:
-- Attempted all the 9 instrctions as mentioned in the requiremnets.
-- Attempted EC2. Attached document with the deliverable.  
+- Single Page Application
+- Vanilla JS
+- DOM Manipulation
